@@ -17,8 +17,14 @@ If you need SDK binaries for other targets (not only VC++, any other target like
 - Clone and build Botan library:
   - Open command line console and go to the folder RepoBaseFolder/OpcUaTestClient 
   - Run script build-botan.cmd
-  ### Build OpcUaTestClient
+### Build OpcUaTestClient
   Open solution RepoBaseFolder/OpcUaTestClient/OpcUatestClient.sln with Visual Studio 2017 and build the solution.
 
+## License and Copyright
+Copyright 2018, One-Way Aautomation Inc.
+
+This source code can be distributed and used under MIT license terms (https://opensource.org/licenses/MIT)
+
+## Questions?
 If you have questions / issues, or need binaries of the SDK for other targets, please contact us by email ravil at onewayautomation.com.
   
