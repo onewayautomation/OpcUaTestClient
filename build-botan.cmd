@@ -16,7 +16,7 @@ git clone --recursive --branch %TAG_BOTAN% --depth 1 https://github.com/randombi
 :BUILD_BOTAN
 PUSHD %PATH_BOTAN%
 IF EXIST Makefile GOTO MAKE_BOTAN
-python configure.py --debug-mode --prefix=%REPO_BASE_FOLDER%\build\botan
+python configure.py --debug-mode --prefix=%REPO_BASE_FOLDER%\%PATH_BOTAN%\install
 
 :MAKE_BOTAN
 nmake BUILD=debug

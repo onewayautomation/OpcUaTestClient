@@ -107,16 +107,17 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../1WAOpcUaSdk/include;../build/botan/include/botan-2;../boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../1WAOpcUaSdk/include;../botan/install/include/botan-2;../boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\Debug;$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\Debug;..\botan\install\lib;$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpcUaSdk.lib;botan.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>cpf ..\1WaOpcUaSdk\x64\Debug x64\Debug botan.dll
+      <Command>cpf ../botan/install/lib x64\Debug botan.dll
+
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
