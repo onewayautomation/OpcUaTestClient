@@ -1,7 +1,9 @@
 @echo off
 
-e:
-SET REPO_BASE_FOLDER=e:\WorkSpace
+SET SCRIPT_PATH=%~dp0
+for %%i in ("%~dp0.") do SET "SCRIPT_PATH=%%~fi"
+
+SET REPO_BASE_FOLDER=%SCRIPT_PATH%\..
 SET TAG_BOOST=boost-1.66.0
 SET PATH_BOOST=boost
 SET MODULES=--with-system --with-filesystem --with-date_time --with-regex
@@ -39,7 +41,7 @@ popd
 popd
 
 :BUILD_BOOST
-IF EXIST %boost_dir%\stage\lib\*.lib GOTO END_BOOST
+IF EXIST %boost_dir%\stage\x64\lib\*.lib GOTO END_BOOST
 pushd %boost_dir%
 rem Start building boost
 echo Building %boost_dir% with %cores% cores using toolset %msvcver%.

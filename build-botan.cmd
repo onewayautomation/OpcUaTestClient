@@ -1,6 +1,9 @@
 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+%~d0
 
-SET REPO_BASE_FOLDER=e:\WorkSpace
+SET SCRIPT_PATH=%~dp0
+for %%i in ("%~dp0.") do SET "SCRIPT_PATH=%%~fi"
+SET REPO_BASE_FOLDER=%SCRIPT_PATH%\..
 SET TAG_BOTAN=2.4.0
 set PATH_BOTAN=botan
 
