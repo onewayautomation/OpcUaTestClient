@@ -16,6 +16,8 @@ If you need SDK binaries for other targets (not only VC++, any other target like
 - Run script **install-dependencies.cmd** This can take for a while (around 15 minutes) to pull source code and build all the dependencies.
 ### Build OpcUaTestClient
   Open solution RepoBaseFolder/OpcUaTestClient/OpcUatestClient.sln with Visual Studio 2017 and build the solution.
+  
+ >Please note that at the very first run of the built application it will take some time to create CA certificate and Application Instance Certificate.
 
 ## License and Copyright
 Copyright 2018, One-Way Aautomation Inc.
