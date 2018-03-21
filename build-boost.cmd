@@ -6,7 +6,9 @@ for %%i in ("%~dp0.") do SET "SCRIPT_PATH=%%~fi"
 SET REPO_BASE_FOLDER=%SCRIPT_PATH%\..
 SET TAG_BOOST=boost-1.66.0
 SET PATH_BOOST=boost
-SET MODULES=--with-system --with-filesystem --with-date_time --with-regex
+
+REM thread is required for Wt
+SET MODULES=--with-system --with-filesystem --with-date_time --with-regex --with-thread
 
 rem Directory to boost root
 set boost_dir=%REPO_BASE_FOLDER%\%PATH_BOOST%
@@ -36,6 +38,12 @@ git submodule update --init libs/range libs/core/ libs/assert/ libs/type_traits/
 
 REM next modules are required for date_time:
 git submodule update --init libs/date_time libs/type_index libs/any libs/regex libs/function libs/algorithm libs/lexical_cast libs/concept_check libs/numeric libs/integer libs/array libs/container libs/move libs/math libs/tokenizer
+
+REM next modules are required for Wt:
+
+git submodule update --init libs/locale libs/typeof libs/pool libs/spirit libs/optional libs/phoenix libs/proto libs/thread libs/chrono libs/ratio libs/tuple libs/exception libs/serialization libs/fusion libs/variant libs/foreach
+git submodule update --init libs/function_types libs/iostreams libs/interprocess libs/intrusive libs/unordered libs/logic libs/program_options libs/multi_index
+
 popd
 
 popd

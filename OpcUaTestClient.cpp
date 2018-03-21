@@ -1,7 +1,7 @@
-// OpcUaTestClient.cpp : Defines the entry point for the console application.
-//
+// OpcUaTestClient.cpp : Sample app demonstrating how to use 1WA OPC UA Client SDK (https://github.com/onewayautomation/1WaOpcUaSdk)
 
 #include "opcua/Connection.h"
+// Suppress warnings on using STL objects in DLL interface. Safe given that all dependencies are built with the same compiler settings and using the same runtime libs.
 #pragma warning (disable: 4275)
 #pragma warning (disable: 4251)
 
@@ -13,55 +13,49 @@ int main(int argc, char* argv[])
 	(void) argv;
 
 	// Thread pool size can be set here (optional):
-	Utils::initThreadPool(1);
-
-	// Either endpoint URL or disocvery URL needs to be defined:
-	std::string endpoint;
-	std::string discoveryUrl;
-	discoveryUrl = "opc.tcp://opcuaserver.com:48010";
-	endpoint = "opc.tcp://opcuaserver.com:48010";
-  
+	Utils::initThreadPool(4);
+ 
   // Set configuration options for connection: 
-	ClientConfiguration config;
-  config.serverInfo.endpointUrl = endpoint;
-	config.serverInfo.discoveryUrls.push_back(discoveryUrl);
+	ClientConfiguration config("opc.tcp://opcuaserver.com:48010");
   config.securityMode = SecurityMode::noneSecureMode();
-  config.createSession = false; // connecting just to call FindServers and GetEndpoints, therefere no need to create session. 
+  config.createSession = false; // connecting just to call FindServers and GetEndpoints, therefore no need to create session. 
   
-  // Create connection object and set consiguration:
+  // Create connection object and set configuration:
 	auto connection = Connection::create();
   connection->setConfiguration(config);
 
   OperationResult connectResult;
-  // Connect synchronously:
+  // Connect synchronously, providing optional callback function too to report connection stages:
 	connectResult = connection->connect([](const OperationResult& r){
 		std::cout << "Connect callback message: " << r.text.text << "\n";
 	}).get();
   
   if (connectResult.isGood()) {
-		// Cal FidnServers and GetEndpoitn services:
-		std::shared_ptr<FindServersRequest> request(new FindServersRequest());
-		auto findServersResponse = connection->send(request).get();
+		// Call FidnServers and GetEndpoints services:
+		std::shared_ptr<FindServersRequest> findServersRequest(new FindServersRequest());
+		auto findServersResponse = connection->send(findServersRequest).get();
+
 		std::cout << "FindServers returned " << findServersResponse->servers.size() << " records \n";
 		for (int index = 0; index < findServersResponse->servers.size(); index++) {
 			std::cout << index << ": " << findServersResponse->servers[index].applicationName.text << "\n";
 		}
 
-    GetEndpointsRequest::Ptr getEndpointsRequest(new GetEndpointsRequest(endpoint));
-		getEndpointsRequest->endpointUrl = "123";
+		// 
+    GetEndpointsRequest::Ptr getEndpointsRequest(new GetEndpointsRequest(findServersRequest->endpointUrl));
     auto getEndpointsResponse = connection->send(getEndpointsRequest).get();
+
 		std::cout << "Get Endpoints returned " << getEndpointsResponse->endpoints.size() << " records\n";
 		for (int index = 0; index < getEndpointsResponse->endpoints.size(); index++) {
 			std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << "\n";
 		}
 
-		auto disconnectResult = connection->disconnect(true).get();
+		auto disconnectResult = connection->disconnect().get();
     std::cout << "Disconnected\n";
   }
 
 	// Modify configuration to connect to the server with session creation:
-	config.serverInfo.endpointUrl = endpoint; 
-	config.serverInfo.localDiscoveryServerUrl = discoveryUrl; 
+	config.serverInfo.endpointUrl = "opc.tcp://opcuaserver.com:48010"; 
+	// config.serverInfo.localDiscoveryServerUrl = "opc.tcp://opcuaserver.com:48010";
 	// TODO - conenciton in secured mode is WIP. config.securityMode = SecurityMode(SecurityPolicyId::Basic128Rsa15, MessageSecurityMode::SignAndEncrypt);
   config.createSession = true;
   
@@ -72,6 +66,7 @@ int main(int argc, char* argv[])
 	  std::cout << "Connect result is " << result.text.text << "\n";
   }).get();
 
+	// Wait until connected:
 	if (!connectResult.isGood()) {
 		while (!connection->isConnected()) {
 			std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -82,10 +77,10 @@ int main(int argc, char* argv[])
   if (connectResult.isGood()) {
 		// Call various services:
 		{
-			ReadRequest::Ptr readRequest(new ReadRequest(2258)); //CurrentTime node
+			ReadRequest::Ptr readRequest(new ReadRequest(2258)); // CurrentTime node
 			readRequest->nodesToRead.push_back(2267); //ServiceLevel node
-
 			auto readResponse = connection->send(readRequest).get();
+
 			for (int index = 0; index < readResponse->results.size(); index++) {
 				std::cout << index << ": " << readResponse->results[index].value.toString() << "\n";
 			}
@@ -137,7 +132,8 @@ int main(int argc, char* argv[])
 
 		CreateSubscriptionRequest::Ptr createSubRequest(new CreateSubscriptionRequest());
 
-		std::shared_ptr<NotificationObserver> dataChangesObserver(new NotificationObserver([&](NotificationMessage& notificationMessage) {
+		// Define callback function receiving notification messages:
+		NotificationObserver dataChangesObserver = [&](NotificationMessage& notificationMessage) {
 			std::cout << "Received notification with sequence number = " << notificationMessage.sequenceNumber << "\n";
 			for (auto iter = notificationMessage.notificationData.begin(); iter != notificationMessage.notificationData.end(); iter++) {
 				DataChangeNotification* dc = dynamic_cast<DataChangeNotification*>(iter->get());
@@ -147,7 +143,7 @@ int main(int argc, char* argv[])
 					}
 				}
 			}
-		}));
+		};
 
 		auto createSubResponse = connection->send(createSubRequest, dataChangesObserver).get();
 
@@ -175,7 +171,7 @@ int main(int argc, char* argv[])
 				
 				std::string s;
 				do {
-					// Loop until user enteres "q":
+					// Loop until user enters "q":
 					std::cin >> s;
 				} while (s != "q" && s!= "Q");
 
@@ -191,7 +187,8 @@ int main(int argc, char* argv[])
 					std::cout << "\tDelete Item result is " << Utils::statusToString(*iter) << "\n";
 				}
 			}
-			else {
+			else 
+			{
 				std::cout << "CreateMonitoredItems failed: error = " << Utils::statusToString(createMonRes->header.serviceResult) << "\n";
 			}
 
@@ -216,5 +213,5 @@ int main(int argc, char* argv[])
 	  connectResult = connection->disconnect(true).get();
   }
 
-	  return 0;
+	return 0;
 }
