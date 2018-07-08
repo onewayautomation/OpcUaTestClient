@@ -107,19 +107,21 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../1WAOpcUaSdk/include;../botan/install/include/botan-2;../boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../1WAOpcUaSdk/include;../botan/install/$(Configuration)/include/botan-2;../boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\Debug;..\botan\install\lib;$(SolutionDir)$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\$(Configuration);..\botan\install\$(Configuration)\lib;$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win64</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpcUaSdk.lib;botan.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>cpf ../botan/install/lib x64\Debug botan.dll
-
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>cpf ../botan/install/debug/lib x64\Debug botan.dll</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -148,14 +150,19 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../OpcUaSdk/include;../../botan;../../boost_1_61_0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../1WAOpcUaSdk/include;../botan/install/$(Configuration)/include/botan-2;../boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>OpcUaSdk.lib;botan.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\$(Configuration);..\botan\install\$(Configuration)\lib;$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win64</AdditionalLibraryDirectories>
     </Link>
+    <PreBuildEvent>
+      <Command>cpf ../botan/install/release/lib x64\Release botan.dll</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="OpcUaTestClient.cpp" />

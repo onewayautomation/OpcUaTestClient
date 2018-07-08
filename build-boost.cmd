@@ -6,9 +6,12 @@ for %%i in ("%~dp0.") do SET "SCRIPT_PATH=%%~fi"
 SET REPO_BASE_FOLDER=%SCRIPT_PATH%\..
 SET TAG_BOOST=boost-1.66.0
 SET PATH_BOOST=boost
+SET FOR_WT=NO
 
 REM thread is required for Wt
-SET MODULES=--with-system --with-filesystem --with-date_time --with-regex --with-thread
+IF %FOR_WT%==YES SET MODULES=--with-system --with-filesystem --with-date_time --with-regex --with-thread
+IF %FOR_WT%==NO SET MODULES=--with-system --with-filesystem --with-date_time --with-regex
+
 
 rem Directory to boost root
 set boost_dir=%REPO_BASE_FOLDER%\%PATH_BOOST%
@@ -40,9 +43,8 @@ REM next modules are required for date_time:
 git submodule update --init libs/date_time libs/type_index libs/any libs/regex libs/function libs/algorithm libs/lexical_cast libs/concept_check libs/numeric libs/integer libs/array libs/container libs/move libs/math libs/tokenizer
 
 REM next modules are required for Wt:
-
-git submodule update --init libs/locale libs/typeof libs/pool libs/spirit libs/optional libs/phoenix libs/proto libs/thread libs/chrono libs/ratio libs/tuple libs/exception libs/serialization libs/fusion libs/variant libs/foreach
-git submodule update --init libs/function_types libs/iostreams libs/interprocess libs/intrusive libs/unordered libs/logic libs/program_options libs/multi_index
+IF %FOR_WT%==YES git submodule update --init libs/locale libs/typeof libs/pool libs/spirit libs/optional libs/phoenix libs/proto libs/thread libs/chrono libs/ratio libs/tuple libs/exception libs/serialization libs/fusion libs/variant libs/foreach
+IF %FOR_WT%==YES git submodule update --init libs/function_types libs/iostreams libs/interprocess libs/intrusive libs/unordered libs/logic libs/program_options libs/multi_index
 
 popd
 
@@ -63,8 +65,6 @@ rem b2 -j%cores% toolset=%msvcver% variant=release,debug address-model=32 archit
 
 rem Build DLLs
 rem b2 -j%cores% toolset=%msvcver% variant=release,debug address-model=32 architecture=x86 link=shared threading=multi runtime-link=shared %MODULES% stage --stagedir=stage/win32
-
 popd
-
 :END_BOOST
 
