@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 				std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << "\n";
 			}
 
-			auto disconnectResult = connection->disconnect().get();
+			auto disconnectResult = connection->disconnect(false).get();
 			std::cout << "Disconnected\n";
 		}
 
