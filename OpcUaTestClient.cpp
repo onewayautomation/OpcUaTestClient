@@ -18,8 +18,9 @@ int main(int argc, char* argv[])
 	Utils::initThreadPool(4);
  
 	{
+		std::string serverEndpointUrl = "opc.tcp://opcuaserver.com:48010";
 		// Set configuration options for connection: 
-		ClientConfiguration config("opc.tcp://opcuaserver.com:48010");
+		ClientConfiguration config(serverEndpointUrl);
 		config.securityMode = SecurityMode::noneSecureMode();
 		config.createSession = false; // connecting just to call FindServers and GetEndpoints, therefore no need to create session. 
 
@@ -64,7 +65,8 @@ int main(int argc, char* argv[])
 		}
 
 		// Modify configuration to connect to the server with session creation:
-		config.serverInfo.endpointUrl = "opc.tcp://opcuaserver.com:48010";
+		config.serverInfo.endpointUrl = serverEndpointUrl;
+
 		// config.serverInfo.localDiscoveryServerUrl = "opc.tcp://opcuaserver.com:48010";
 		// TODO - conneciton in secured mode is WIP. config.securityMode = SecurityMode(SecurityPolicyId::Basic128Rsa15, MessageSecurityMode::SignAndEncrypt);
 		config.createSession = true;
@@ -96,7 +98,7 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			BrowseRequest::Ptr browseRequest(new BrowseRequest(NodeId(Ids::NumericNodeId::RootFolder)));
+			BrowseRequest::Ptr browseRequest(new BrowseRequest()); // Ids::NumericNodeId::RootFolder)));
 			browseRequest->requestedMaxReferencesPerNode = 1;
 			auto browseResponse = connection->send(browseRequest).get();
 			BrowseNextRequest::Ptr browseNextRequest(new BrowseNextRequest());
@@ -222,6 +224,7 @@ int main(int argc, char* argv[])
 
 			connectResult = connection->disconnect(true).get();
 		}
+		connection->shutdown();
 	}
 	Utils::closeSdk();
 
