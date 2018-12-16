@@ -223,6 +223,9 @@ int main(int argc, char* argv[])
 			}
 
 			connectResult = connection->disconnect(true).get();
+
+			// Calling shutdown method guarantees that no callbacks are made from background thread.
+			connection->shutdown();
 		}
 		connection->shutdown();
 	}
