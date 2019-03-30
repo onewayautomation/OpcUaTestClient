@@ -35,47 +35,46 @@ int main(int argc, char* argv[])
 
 		connection->setConfiguration(config);
 
-		OperationResult connectResult;
 		// Connect synchronously, providing optional callback function too to report this specific connect attempt stages:
-		connectResult = connection->connect([](const OperationResult& r) {
-			std::cout << "Connect callback message: " << r.text.text << "\n";
+		OperationResult connectResult = connection->connect([](const OperationResult& r) {
+			std::cout << "Connect callback message: " << r.text.text << std::endl;
 		}).get();
 
 		if (connectResult.isGood()) {
-			// Call FidnServers and GetEndpoints services:
+			// Call FindServers and GetEndpoints services:
 			std::shared_ptr<FindServersRequest> findServersRequest(new FindServersRequest());
 			auto findServersResponse = connection->send(findServersRequest).get();
 
-			std::cout << "FindServers returned " << findServersResponse->servers.size() << " records \n";
+			std::cout << "FindServers returned " << findServersResponse->servers.size() << " records" << std::endl;
 			for (int index = 0; index < findServersResponse->servers.size(); index++) {
-				std::cout << index << ": " << findServersResponse->servers[index].applicationName.text << "\n";
+				std::cout << index << ": " << findServersResponse->servers[index].applicationName.text << std::endl;
 			}
 
 			// 
 			GetEndpointsRequest::Ptr getEndpointsRequest(new GetEndpointsRequest(findServersRequest->endpointUrl));
 			auto getEndpointsResponse = connection->send(getEndpointsRequest).get();
 
-			std::cout << "Get Endpoints returned " << getEndpointsResponse->endpoints.size() << " records\n";
+			std::cout << "Get Endpoints returned " << getEndpointsResponse->endpoints.size() << " records" << std::endl;
 			for (int index = 0; index < getEndpointsResponse->endpoints.size(); index++) {
-				std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << "\n";
+				std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << std::endl;
 			}
 
 			auto disconnectResult = connection->disconnect(false).get();
-			std::cout << "Disconnected\n";
+			std::cout << "Disconnected" << std::endl;
 		}
 
 		// Modify configuration to connect to the server with session creation:
 		config.serverInfo.endpointUrl = serverEndpointUrl;
 
 		// config.serverInfo.localDiscoveryServerUrl = "opc.tcp://opcuaserver.com:48010";
-		// TODO - conneciton in secured mode is WIP. config.securityMode = SecurityMode(SecurityPolicyId::Basic128Rsa15, MessageSecurityMode::SignAndEncrypt);
+		config.securityMode = SecurityMode(SecurityPolicyId::Basic256Sha256, MessageSecurityMode::SignAndEncrypt);
 		config.createSession = true;
 
 		connection->setConfiguration(config);
 
 		// Connect:
 		connectResult = connection->connect([](OperationResult result) {
-			std::cout << "Connect result is " << result.text.text << "\n";
+			std::cout << "Connect result is " << result.text.text << std::endl;
 		}).get();
 
 		// Wait until connected:
@@ -86,29 +85,32 @@ int main(int argc, char* argv[])
 			connectResult = StatusCode::Good;
 		}
 
-		if (connectResult.isGood()) {
+		if (connectResult.isGood()) 
+		{
 			// Call various services:
 			{
+				// Read
 				ReadRequest::Ptr readRequest(new ReadRequest(2258)); // CurrentTime node
 				readRequest->nodesToRead.push_back(2267); //ServiceLevel node
 				auto readResponse = connection->send(readRequest).get();
 
 				for (int index = 0; index < readResponse->results.size(); index++) {
-					std::cout << index << ": " << readResponse->results[index].value.toString() << "\n";
+					std::cout << index << ": " << readResponse->results[index].value.toString() << std::endl;
 				}
 			}
 
-			BrowseRequest::Ptr browseRequest(new BrowseRequest()); // Ids::NumericNodeId::RootFolder)));
+			// Browse
+			BrowseRequest::Ptr browseRequest(new BrowseRequest()); // By default initialized to the root folder, Ids::NumericNodeId::RootFolder;
 			browseRequest->requestedMaxReferencesPerNode = 1;
 			auto browseResponse = connection->send(browseRequest).get();
 			BrowseNextRequest::Ptr browseNextRequest(new BrowseNextRequest());
 			std::vector<int> indexes;
 			if (Utils::isGood(browseResponse)) {
-				std::cout << "Browse result:\n";
+				std::cout << "Browse result:" << std::endl;
 				for (int index = 0; index < browseResponse->results.size(); index++) {
-					std::cout << "NodeId " << browseRequest->nodesToBrowse[index].nodeId.toString() << ", has " << browseResponse->results[index].references.size() << " references\n";
+					std::cout << "NodeId " << browseRequest->nodesToBrowse[index].nodeId.toString() << ", has " << browseResponse->results[index].references.size() << " references" << std::endl;
 					for (int r = 0; r < browseResponse->results[index].references.size(); r++) {
-						std::cout << "\t" << browseResponse->results[index].references[r].displayName.toString() << "\n";
+						std::cout << "\t" << browseResponse->results[index].references[r].displayName.toString() << std::endl;
 					}
 					if (!browseResponse->results[index].continuationPoint.empty()) {
 						browseNextRequest->continuationPoints.push_back(browseResponse->results[index].continuationPoint);
@@ -120,11 +122,11 @@ int main(int argc, char* argv[])
 					if (Utils::isGood(browseNextResponse)) {
 						browseNextRequest->clear();
 						std::vector < int> newIndexes;
-						std::cout << "BrowseNext result:\n";
+						std::cout << "BrowseNext result:" << std::endl;
 						for (int index = 0; index < browseNextResponse->results.size(); index++) {
-							std::cout << "NodeId " << browseRequest->nodesToBrowse[indexes[index]].nodeId.toString() << ", has " << browseNextResponse->results[index].references.size() << " references\n";
+							std::cout << "NodeId " << browseRequest->nodesToBrowse[indexes[index]].nodeId.toString() << ", has " << browseNextResponse->results[index].references.size() << " references" << std::endl;
 							for (int r = 0; r < browseNextResponse->results[index].references.size(); r++) {
-								std::cout << "\t" << browseNextResponse->results[index].references[r].displayName.toString() << "\n";
+								std::cout << "\t" << browseNextResponse->results[index].references[r].displayName.toString() << std::endl;
 							}
 							if (!browseNextResponse->results[index].continuationPoint.empty()) {
 								browseNextRequest->continuationPoints.push_back(browseNextResponse->results[index].continuationPoint);
@@ -134,24 +136,25 @@ int main(int argc, char* argv[])
 						indexes = newIndexes;
 					}
 					else {
-						std::cout << "BrowseNext result is " << StatusCodeUtil::toString(browseNextResponse->header.serviceResult) << "\n";
+						std::cout << "BrowseNext result is " << StatusCodeUtil::toString(browseNextResponse->header.serviceResult) << std::endl;
 					}
 				}
 			}
 			else {
-				std::cout << "Browse result is " << StatusCodeUtil::toString(browseResponse->header.serviceResult) << "\n";
+				std::cout << "Browse result is " << StatusCodeUtil::toString(browseResponse->header.serviceResult) << std::endl;
 			}
 
+			// create subscription
 			CreateSubscriptionRequest::Ptr createSubRequest(new CreateSubscriptionRequest());
 
 			// Define callback function receiving notification messages:
 			NotificationObserver dataChangesObserver = [&](NotificationMessage& notificationMessage) {
-				std::cout << "Received notification with sequence number = " << notificationMessage.sequenceNumber << "\n";
+				std::cout << "Received notification with sequence number = " << notificationMessage.sequenceNumber << std::endl;
 				for (auto iter = notificationMessage.notificationData.begin(); iter != notificationMessage.notificationData.end(); iter++) {
 					DataChangeNotification* dc = dynamic_cast<DataChangeNotification*>(iter->get());
 					if (dc != 0) {
 						for (auto mi = dc->monitoredItems.begin(); mi != dc->monitoredItems.end(); mi++) {
-							std::cout << "Client Handle = " << mi->clientHandle << ", value = " << mi->dataValue.value.toString() << ", status = " << Utils::statusToString(mi->dataValue.statusCode) << "\n";
+							std::cout << "Client Handle = " << mi->clientHandle << ", value = " << mi->dataValue.value.toString() << ", status = " << Utils::statusToString(mi->dataValue.statusCode) << std::endl;
 						}
 					}
 				}
@@ -160,12 +163,13 @@ int main(int argc, char* argv[])
 			auto createSubResponse = connection->send(createSubRequest, dataChangesObserver).get();
 
 			if (createSubResponse->isGood()) {
-				std::cout << "Create Subscription succeeded. \n"
-					<< "\tid = " << createSubResponse->subscriptionId << "\n"
-					<< "\trevisedLifetimeCount = " << createSubResponse->revisedLifetimeCount << "\n"
-					<< "\trevisedMaxKeepAliveCount = " << createSubResponse->revisedMaxKeepAliveCount << "\n"
-					<< "\trevisedPublishingInterval = " << createSubResponse->revisedPublishingInterval << "\n";
+				std::cout << "Create Subscription succeeded." << std::endl
+					<< "\tid = " << createSubResponse->subscriptionId << std::endl
+					<< "\trevisedLifetimeCount = " << createSubResponse->revisedLifetimeCount << std::endl
+					<< "\trevisedMaxKeepAliveCount = " << createSubResponse->revisedMaxKeepAliveCount << std::endl
+					<< "\trevisedPublishingInterval = " << createSubResponse->revisedPublishingInterval << std::endl;
 
+				// create monitored items
 				CreateMonitoredItemsRequest::Ptr createMonReq(new CreateMonitoredItemsRequest());
 				createMonReq->subscriptionId = createSubResponse->subscriptionId;
 
@@ -175,10 +179,10 @@ int main(int argc, char* argv[])
 				auto createMonRes = connection->send(createMonReq).get();
 
 				if (createMonRes->isGood()) {
-					std::cout << "CreateMonitoredItems succeeded. \n";
+					std::cout << "CreateMonitoredItems succeeded." << std::endl;
 					for (int index = 0; index < createMonRes->results.size(); index++) {
 						std::cout << "\tNode " << createMonReq->itemsToCreate[index].itemToMonitor.nodeId.toString() << " result is " << Utils::statusToString(createMonRes->results[index].statusCode)
-							<< ", client id = " << createMonReq->itemsToCreate[index].monitoringParameters.clientHandle << ", server id = " << createMonRes->results[index].monitoredItemId << "\n";
+							<< ", client id = " << createMonReq->itemsToCreate[index].monitoringParameters.clientHandle << ", server id = " << createMonRes->results[index].monitoredItemId << std::endl;
 					}
 
 					std::string s;
@@ -194,32 +198,32 @@ int main(int argc, char* argv[])
 						delReq->monitoredItemIds.push_back(iter->monitoredItemId);
 					}
 					auto delRes = connection->send(delReq).get();
-					std::cout << "DeleteMonitoredItems result is " << Utils::statusToString(delRes->header.serviceResult) << "\n";
+					std::cout << "DeleteMonitoredItems result is " << Utils::statusToString(delRes->header.serviceResult) << std::endl;
 					for (auto iter = delRes->results.begin(); iter != delRes->results.end(); iter++) {
-						std::cout << "\tDelete Item result is " << Utils::statusToString(*iter) << "\n";
+						std::cout << "\tDelete Item result is " << Utils::statusToString(*iter) << std::endl;
 					}
 				}
 				else
 				{
-					std::cout << "CreateMonitoredItems failed: error = " << Utils::statusToString(createMonRes->header.serviceResult) << "\n";
+					std::cout << "CreateMonitoredItems failed: error = " << Utils::statusToString(createMonRes->header.serviceResult) << std::endl;
 				}
 
 				DeleteSubscriptionsRequest::Ptr delSubReq(new DeleteSubscriptionsRequest());
 				delSubReq->subscriptionIds.push_back(createSubResponse->subscriptionId);
 				auto delSubRes = connection->send(delSubReq).get();
 				if (delSubRes->isGood()) {
-					std::cout << "DeleteSubscriptions succeeded\n";
+					std::cout << "DeleteSubscriptions succeeded" << std::endl;
 					for (auto index = 0; index < delSubRes->results.size(); index++) {
-						std::cout << "\tResult of deleting subscription " << delSubReq->subscriptionIds[index] << " is " << Utils::statusToString(delSubRes->results[index]) << "\n";
+						std::cout << "\tResult of deleting subscription " << delSubReq->subscriptionIds[index] << " is " << Utils::statusToString(delSubRes->results[index]) << std::endl;
 					}
 				}
 				else
 				{
-					std::cout << "DeleteSubscriptions result is " << Utils::statusToString(delSubRes->header.serviceResult) << "\n";
+					std::cout << "DeleteSubscriptions result is " << Utils::statusToString(delSubRes->header.serviceResult) << std::endl;
 				}
 			}
 			else {
-				std::cout << "Create Subscription failed, error code = " << Utils::statusToString(createSubResponse->header.serviceResult) << "\n";
+				std::cout << "Create Subscription failed, error code = " << Utils::statusToString(createSubResponse->header.serviceResult) << std::endl;
 			}
 
 			connectResult = connection->disconnect(true).get();

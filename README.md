@@ -4,7 +4,7 @@ OPC UA Client test console application, using [One-Way Automation C++ OPC UA SDK
 ## How to build on Windows.
 It is assumed that source code repository base folder is at RepoBaseFolder.
 
-> Please note that currently binaries for the OPC UA SDK are created only for VC++ 2017, 64 bit debug version.
+> Please note that currently binaries for the OPC UA SDK are created only for VC++ 2017, 64 bit debug and release modes.
 If you need SDK binaries for other targets (not only VC++, any other target like Ubuntu or Raspberry Pi), please create an issue or contact us.
 
 ### Install prerequisites
@@ -22,7 +22,7 @@ Please also note that scripts which build dependencies, have path to the **vcvar
  >Please note that at the very first run of the built application it will take some time to create CA certificate and Application Instance Certificate.
 
 ## License and Copyright
-Copyright 2018, One-Way Aautomation Inc.
+Copyright 2018-2019, One-Way Aautomation Inc.
 
 This source code can be distributed and used under MIT license terms (https://opensource.org/licenses/MIT)
 
