@@ -112,7 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\x64\$(Configuration);..\botan\install\$(Configuration)\lib;$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\boost\stage\$(Platform)\lib;..\1WaOpcUaSdk\lib\WindowsVC2017\x64\$(Configuration);..\botan\install\$(Configuration)\lib;$(SolutionDir)$(Platform)\$(Configuration)\;C:\Program Files %28x86%29\Visual Leak Detector\lib\Win64</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpcUaSdk.lib;botan.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -120,7 +120,8 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cpf ../botan/install/debug/lib x64\Debug botan.dll</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

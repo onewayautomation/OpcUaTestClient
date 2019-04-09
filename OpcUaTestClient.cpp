@@ -15,13 +15,18 @@ int main(int argc, char* argv[])
 	(void) argv;
 
 	// Thread pool size can be set here (optional):
-	Utils::initThreadPool(4);
+	Utils::initSdk();
  
 	{
 		std::string serverEndpointUrl = "opc.tcp://opcuaserver.com:48010";
+    
+    serverEndpointUrl = "opc.tcp://OWA1:48010";
+
 		// Set configuration options for connection: 
 		ClientConfiguration config(serverEndpointUrl);
 		config.securityMode = SecurityMode::noneSecureMode();
+
+
 		config.createSession = false; // connecting just to call FindServers and GetEndpoints, therefore no need to create session. 
 
 		// Optional state change callback - it will be called whenever connection state is changed: 
@@ -33,38 +38,44 @@ int main(int argc, char* argv[])
 		// Create connection object and set configuration:
 		auto connection = Connection::create(cf);
 
-		connection->setConfiguration(config);
+		
 
 		// Connect synchronously, providing optional callback function too to report this specific connect attempt stages:
-		OperationResult connectResult = connection->connect([](const OperationResult& r) {
-			std::cout << "Connect callback message: " << r.text.text << std::endl;
-		}).get();
+    OperationResult connectResult;
+    
+    //{
+    //    connection->setConfiguration(config);
+    //  connectResult = connection->connect([](const OperationResult& r) {
+    //    std::cout << "Connect callback message: " << r.text.text << std::endl;
+    //  }).get();
 
-		if (connectResult.isGood()) {
-			// Call FindServers and GetEndpoints services:
-			std::shared_ptr<FindServersRequest> findServersRequest(new FindServersRequest());
-			auto findServersResponse = connection->send(findServersRequest).get();
+    //  if (connectResult.isGood()) {
+    //    // Call FindServers and GetEndpoints services:
+    //    std::shared_ptr<FindServersRequest> findServersRequest(new FindServersRequest());
+    //    auto findServersResponse = connection->send(findServersRequest).get();
 
-			std::cout << "FindServers returned " << findServersResponse->servers.size() << " records" << std::endl;
-			for (int index = 0; index < findServersResponse->servers.size(); index++) {
-				std::cout << index << ": " << findServersResponse->servers[index].applicationName.text << std::endl;
-			}
+    //    std::cout << "FindServers returned " << findServersResponse->servers.size() << " records" << std::endl;
+    //    for (int index = 0; index < findServersResponse->servers.size(); index++) {
+    //      std::cout << index << ": " << findServersResponse->servers[index].applicationName.text << std::endl;
+    //    }
 
-			// 
-			GetEndpointsRequest::Ptr getEndpointsRequest(new GetEndpointsRequest(findServersRequest->endpointUrl));
-			auto getEndpointsResponse = connection->send(getEndpointsRequest).get();
+    //    // 
+    //    GetEndpointsRequest::Ptr getEndpointsRequest(new GetEndpointsRequest(findServersRequest->endpointUrl));
+    //    auto getEndpointsResponse = connection->send(getEndpointsRequest).get();
 
-			std::cout << "Get Endpoints returned " << getEndpointsResponse->endpoints.size() << " records" << std::endl;
-			for (int index = 0; index < getEndpointsResponse->endpoints.size(); index++) {
-				std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << std::endl;
-			}
+    //    std::cout << "Get Endpoints returned " << getEndpointsResponse->endpoints.size() << " records" << std::endl;
+    //    for (int index = 0; index < getEndpointsResponse->endpoints.size(); index++) {
+    //      std::cout << index << ": " << getEndpointsResponse->endpoints[index].endpointUrl << std::endl;
+    //    }
 
-			auto disconnectResult = connection->disconnect(false).get();
-			std::cout << "Disconnected" << std::endl;
-		}
+    //    auto disconnectResult = connection->disconnect(false).get();
+    //    std::cout << "Disconnected" << std::endl;
+    //  }
+    //}
 
 		// Modify configuration to connect to the server with session creation:
 		config.serverInfo.endpointUrl = serverEndpointUrl;
+    // config.connectionSettings.defaultDiscoveryUrl = serverEndpointUrl;
 
 		// config.serverInfo.localDiscoveryServerUrl = "opc.tcp://opcuaserver.com:48010";
 		config.securityMode = SecurityMode(SecurityPolicyId::Basic256Sha256, MessageSecurityMode::SignAndEncrypt);
@@ -232,10 +243,6 @@ int main(int argc, char* argv[])
 		connection->shutdown();
 	}
 	Utils::closeSdk();
-
-	std::cout << "Enter any string to exit";
-	std::string s;
-	std::cin >> s;
 
 	return 0;
 }
